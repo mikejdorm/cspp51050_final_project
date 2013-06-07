@@ -22,7 +22,7 @@ case class WordPairNode(val value:WordPair) extends GraphNode[WordPair]{
           this.incrementMasterCounter()
           x.incrementCount()
         }
-        case None => println("What!?")
+        case None => None
       }
     }
     else{
@@ -32,25 +32,25 @@ case class WordPairNode(val value:WordPair) extends GraphNode[WordPair]{
     }
   }
   
-  def addForwardPointer(x:WordNode) = {
-    addPointer(forwardPointers,x)
-  }
-  def addBackPointer(x:WordNode) = {
-    addPointer(backPointers,x)
-  }
+  def addForwardPointer(x:WordNode) =  addPointer(forwardPointers,x)
+
+  def addBackPointer(x:WordNode) = addPointer(backPointers,x)
+
+  override def toString():String = key
   
-  def getRandomForwardTransition():WordNode = forwardPointers.values.last //TODO add in a random funl
+  def getRandomForwardTransition():WordNode = forwardPointers.values.last //TODO add random function
+  
 }
-  class WordPair(val first:Word, val second:Word)
+
+class WordPair(val first:Word, val second:Word)
   
-  case class WordNode(val value:Word, val parent:WordPairNode) extends GraphNode[Word]{
+case class WordNode(val value:Word, val parent:WordPairNode) extends GraphNode[Word]{
      var counter:Int = 0
      override def key:String = value.value
      def incrementCount() = {this.counter = this.counter +1 }
      def probability:Double = {
        if(parent.counter != 0.0){
          value.setProbability(this.counter/parent.counter)
-       //  println(value.probability)
        }
         value.probability
      } 

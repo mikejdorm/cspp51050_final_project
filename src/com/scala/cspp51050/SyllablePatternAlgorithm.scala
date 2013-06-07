@@ -3,71 +3,124 @@ import scala.collection.mutable.Queue
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Set
 
-class SyllablePatternAlgorithm(val start:WordPairNode, val syllableCount:Int) extends Algorithm{
-  var queue:Queue[BFSyllableNode] = Queue.empty[BFSyllableNode]
-  var root:BFSSyllableRoot = new BFSSyllableRoot(start, (start.value.first.syllableCount +
-		  						start.value.second.syllableCount))
-  var results:ListBuffer[BFSyllableNode] = new ListBuffer[BFSyllableNode]
-  var markedNodes: Set[String] = Set()
+class SyllablePatternAlgorithm(val start:WordPairNode, 
+  val syllableCount:Int, val lineNumber:Int, val reverse:Boolean) extends Algorithm[LineResult]{
   
-  def execute() = {
+  protected var queue:Queue[BFSyllableNode] = Queue.empty[BFSyllableNode]
+  
+  protected var root:BFSSyllableRoot = new BFSSyllableRoot(start, (start.value.first.syllableCount +
+		  						start.value.second.syllableCount))
+  
+  protected var nodes:ListBuffer[BFSyllableNode] = new ListBuffer[BFSyllableNode]
+  
+  protected var markedNodes: Set[String] = Set()
+  protected var result:Option[LineResult] = None
+  
+  override def execute():Option[LineResult] = {
     queue.enqueue(root)
     while(!queue.isEmpty){
     	val node:BFSyllableNode = queue.dequeue
-    	node.value.forwardPointers.values.foreach(f =>
-    	  SearchUtils.retrieveWordPairNode(node.value.value.second, f.value) match{
-    	    case Some(w) => {
-    	      processNode(node,w,f)
-    	    }
-    	    case None => 
+    	var pointers = node.value.forwardPointers.values
+    	if(reverse){
+    		 pointers = node.value.backPointers.values
+    	}
+    	pointers.foreach(f =>{
+    	  var graphNode:Option[WordPairNode] = None
+    	  if(!reverse){
+    	     graphNode = SearchUtils.retrieveWordPairNode(node.value.value.second, f.value)
     	  }
+    	  else{
+    	     graphNode = SearchUtils.retrieveWordPairNode(f.value, node.value.value.first)
+    	  }
+    	   graphNode match{
+    	    case Some(w) => {
+    	    	processNode(node,w,f)
+    	    }
+    	    case None => None
+    	  }
+    	}
     	)	
       }
+     result = determineResult(nodes)
+     getResult
    }
   
-  def processNode(parent:BFSyllableNode, child:WordPairNode, newWord:WordNode) = {
+ override def getResult():Option[LineResult] = result
+  
+ protected def determineResult(nodes:ListBuffer[BFSyllableNode]):Option[LineResult] = {
+      var result = 
+      nodes.foreach(n => if(n.syllableCount==syllableCount)
+        if(!reverse)
+           this.result = Option(buildLine(new LineResult(lineNumber),n))
+        else
+           this.result = Option(buildLineRev(new LineResult(lineNumber),n))
+     )
+     this.result
+  }
+  
+ protected def buildLine(lineResult:LineResult, node:BFSNode):LineResult = node match{
+    case r: BFSSyllableRoot => {
+    	lineResult.appendResult(r.value.value.first)
+    							lineResult}
+  	case s: BFSSyllableGraphNode => {
+  	  lineResult.appendResult(s.value.value.first)
+  	  buildLine(lineResult,s.backPointer)
+  								  }
+  	case _ =>{ lineResult }
+  }
+  
+ protected def buildLineRev(lineResult:LineResult, node:BFSNode):LineResult = node match{
+    case r: BFSSyllableRoot => {
+    	lineResult.appendResult(r.value.value.first)
+    	lineResult.appendResult(r.value.value.second)
+    	lineResult
+    }
+    case s: BFSSyllableGraphNode => {
+         lineResult.prependResult(s.value.value.first)
+         buildLineRev(lineResult,s.backPointer)
+    }
+  }
+  
+ protected def processNode(parent:BFSyllableNode, child:WordPairNode, newWord:WordNode) = {
          val newCount:Int = Int.box(parent.syllableCount+newWord.value.syllableCount)
          val target:Int = this.syllableCount
-         if(newCount.compareTo(target)==0){
-    	    results.append(new BFSSyllableGraphNode(child,parent,newCount, newWord.probability))
-    	 }
+         if((target-newCount)==0)
+    	    nodes.append(new BFSSyllableGraphNode(child,parent,newCount, newWord.probability))
     	 else if(newCount.compareTo(target)<0){
     	    if(!markedNodes.contains(child.key)){
 	    	    queue.enqueue(new BFSSyllableGraphNode(child,parent,newCount, newWord.probability))
-	    	   // println(child.key + " not in set " + markedNodes.size)
 	    	    markedNodes.+=(child.key)
-	    	    //    println("added. size now: " + markedNodes.size)
     	    }
     	  }
   }
-  
-    def getResult():Option[BFSNode] = {
-      if (results.isEmpty) None
-      else if(results.size == 1) return Some(results.toList(0))
-  	  else  Some(chooseRandomResult(results.toList))
-    }
+ 
+ protected def chooseRandomResult(list:List[BFSNode]):BFSNode = {  
+        if(list.size>0){
+		        val rand = GenRandInt(0,(list.size/2))
+				list(rand.next)
+        }
+        else{
+           this.root
+        }
+  }
     
-    def chooseRandomResult(list:List[BFSNode]):BFSNode = {  
-        list.foreach(res => SearchUtils.createLine(Some(res),1)
-            match {
-            	case Some(l) => l.printLine
-          		case None => "none"
-        	})
-        val rand = GenRandInt(0,(list.size/2))
-		list(rand.next)
-    }
-    
-    def getName:String = "BreadthFirstSearch"
+ override def getName:String = "BreadthFirstSearch"
+      
 }
 
 trait BFSyllableNode extends BFSNode{
   val syllableCount:Int
   def compare(that:BFSyllableNode)= {that.score compare this.score}
+  override def toString():String = "BFSNode"
 }
 
 class BFSSyllableRoot(override val value:WordPairNode, val syllableCount:Int) extends BFSRoot(value) 
-with BFSyllableNode
+with BFSyllableNode{
+    override def toString():String = value.toString
+}
 
 class BFSSyllableGraphNode(override val value:WordPairNode, override val backPointer:BFSNode,  val syllableCount:Int, 
-   override val transitionProb:Double) extends BFSGraphNode(value,backPointer,transitionProb) with BFSyllableNode
+   override val transitionProb:Double) extends BFSGraphNode(value,backPointer,transitionProb) with BFSyllableNode{
+    override def toString():String = value.toString
+}
   

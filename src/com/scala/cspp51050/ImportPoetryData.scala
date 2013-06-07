@@ -8,38 +8,38 @@ object ImportPoetryData {
  def execute()={
 	val elements = XML.loadFile("/Users/michaeldorman/Desktop/poems.xml")
     (elements \ "ROW").foreach(row => parsePoem((row \ "poem_text").text.split("\\b").filter(_ != " ").toList))
-   println("Graph contains " + graph.size + " nodes")
+    println("Graph contains " + graph.size + " nodes")
   }
   
   private def parsePoem(xs:List[String]):Unit = xs match {
       case x::y::z::Nil => {
-      var wordOne = parseWord(x.trim.toLowerCase)
-      var wordTwo = parseWord(y.trim.toLowerCase)
-      var wordThree = parseWord(z.trim.toLowerCase)
-      organizeNodes(wordOne,wordTwo,wordThree)
+	      var wordOne = parseWord(x.trim.toLowerCase)
+	      var wordTwo = parseWord(y.trim.toLowerCase)
+	      var wordThree = parseWord(z.trim.toLowerCase)
+	      organizeNodes(wordOne,wordTwo,wordThree)
       }
-    case x::y::z::xs => {
-      var wordOne = parseWord(x.trim.toLowerCase)
-      var wordTwo = parseWord(y.trim.toLowerCase)
-      var wordThree = parseWord(z.trim.toLowerCase)
-      organizeNodes(wordOne,wordTwo,wordThree)
-      parsePoem(y::z::xs)
-    }
-    case _ => println("Done")
+      case x::y::z::xs => {
+	      var wordOne = parseWord(x.trim.toLowerCase)
+	      var wordTwo = parseWord(y.trim.toLowerCase)
+	      var wordThree = parseWord(z.trim.toLowerCase)
+	      organizeNodes(wordOne,wordTwo,wordThree)
+	      parsePoem(y::z::xs)
+      }
+      case _ => println("Done")
   }
   
   private def organizeNodes(wordOne:Option[Word], wordTwo:Option[Word], wordThree:Option[Word]) = {
     	    graph.getNode(wordOne,wordTwo) match {
 	        case Some(n) => wordThree match{
 	          case Some(w) => n.addForwardPointer(new WordNode(w,n))
-	          case None =>
+	          case None => None
 	        }
 	        case None => wordOne match{
-	          case None => 
+	          case None => None
 	          case Some(word) => wordTwo match{
-	            case None => 
+	            case None => None
 	            case Some(word2) => wordThree match{
-	              case None => 
+	              case None => None
 	              case Some(word3) => {
 	                 val node = createNode(word, word2)
 	                 node.addForwardPointer(new WordNode(word3,node))
@@ -48,6 +48,25 @@ object ImportPoetryData {
 	          }
 	        }
 	      }
+    	 graph.getNode(wordTwo,wordThree) match{
+    	    case Some(n) => wordOne match{
+	          case Some(w) => n.addBackPointer(new WordNode(w,n))
+	          case None => None
+	        }
+	        case None => wordTwo match{
+	          case None => None
+	          case Some(word2) => wordThree match{
+	            case None => None
+	            case Some(word3) => wordOne match{
+	              case None => None
+	              case Some(word) => {
+	                 val node = createNode(word2, word3)
+	                 node.addBackPointer(new WordNode(word,node))
+	              }
+	            }
+	          }
+	        }
+    	 }
   }
   
   private def createNode(wordOne:Word, wordTwo:Word):WordPairNode = {
@@ -67,10 +86,10 @@ object ImportPoetryData {
       None
     }
     case puncRegex2(_) => {
-      Some(new Word(text,text))
+      None
     }
     case lineBreakRegex(_) => {
-      Some(cleanLineBreak(text))
+      None
     }
     case wordRegex(_) => {
       bindWordToDictionaryEntry(text)

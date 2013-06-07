@@ -65,12 +65,12 @@ object SearchUtils{
     }
   }
 }
-
-class BreadthFirstSearch(val start:WordPairNode, val depth:Int) extends Algorithm{
+/*
+class BreadthFirstSearch[X <: Component](val start:WordPairNode, val depth:Int) extends Algorithm[X]{
   var queue:Queue[BFSNode] = Queue.empty[BFSNode]
   var root:BFSRoot = new BFSRoot(start)
   var markedNodes: Set[String] = Set()
-  def execute() = {
+  def execute():X = {
     var done:Boolean = false
     queue.enqueue(root)
     while(!queue.isEmpty & done != true){
@@ -91,6 +91,8 @@ class BreadthFirstSearch(val start:WordPairNode, val depth:Int) extends Algorith
     	)	
       }
    }
+  */
+/*
     def getResult():Option[BFSNode] = {
       if (queue.size==0) None
   	  else  {
@@ -108,7 +110,8 @@ class BreadthFirstSearch(val start:WordPairNode, val depth:Int) extends Algorith
     
     def getName:String = "BreadthFirstSearch"
   
-}
+}*/
+
   abstract class BFSNode extends Ordered[BFSNode]{
     val value:WordPairNode
     def score:Double = 0
@@ -117,7 +120,7 @@ class BreadthFirstSearch(val start:WordPairNode, val depth:Int) extends Algorith
   }
   
  class BFSGraphNode(override val value:WordPairNode, 
-      val backPointer:BFSNode, val transitionProb:Double) extends BFSNode{
+    val backPointer:BFSNode, val transitionProb:Double) extends BFSNode{
     override def distance:Int = backPointer.distance + 1
     override def score:Double = {
        if(backPointer.score > 0)
