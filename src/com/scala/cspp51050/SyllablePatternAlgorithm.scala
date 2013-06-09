@@ -5,7 +5,7 @@ import scala.collection.mutable.Set
 
 class SyllablePatternAlgorithm(val start:WordPairNode, 
   val syllableCount:Int, val lineNumber:Int, val reverse:Boolean) extends Algorithm[LineResult]{
-  
+ // println("Start: " + start + " syl cnt: " + syllableCount + " ln num: " + lineNumber + " rev: " +  reverse)
   protected var queue:Queue[BFSyllableNode] = Queue.empty[BFSyllableNode]
   
   protected var root:BFSSyllableRoot = new BFSSyllableRoot(start, (start.value.first.syllableCount +
@@ -18,12 +18,14 @@ class SyllablePatternAlgorithm(val start:WordPairNode,
   
   override def execute():Option[LineResult] = {
     queue.enqueue(root)
-    while(!queue.isEmpty){
+
+    while(!queue.isEmpty && nodes.size<4){
     	val node:BFSyllableNode = queue.dequeue
     	var pointers = node.value.forwardPointers.values
     	if(reverse){
     		 pointers = node.value.backPointers.values
     	}
+    	//println("Pointers: " + pointers.size  + " for " + node + " queue size: " + queue.size)
     	pointers.foreach(f =>{
     	  var graphNode:Option[WordPairNode] = None
     	  if(!reverse){
@@ -36,7 +38,10 @@ class SyllablePatternAlgorithm(val start:WordPairNode,
     	    case Some(w) => {
     	    	processNode(node,w,f)
     	    }
-    	    case None => None
+    	    case None => {
+    	      println("Could not find graph node")
+    	      None
+    	    }
     	  }
     	}
     	)	
@@ -48,25 +53,28 @@ class SyllablePatternAlgorithm(val start:WordPairNode,
  override def getResult():Option[LineResult] = result
   
  protected def determineResult(nodes:ListBuffer[BFSyllableNode]):Option[LineResult] = {
-      var result = 
+      
+      var result = None
+    //  println("Calculating for nodes: " + nodes.size)
       nodes.foreach(n => if(n.syllableCount==syllableCount)
         if(!reverse)
-           this.result = Option(buildLine(new LineResult(lineNumber),n))
+           this.result = Some(buildLine(new LineResult(lineNumber),n))
         else
-           this.result = Option(buildLineRev(new LineResult(lineNumber),n))
+           this.result = Some(buildLineRev(new LineResult(lineNumber),n))
      )
      this.result
   }
   
  protected def buildLine(lineResult:LineResult, node:BFSNode):LineResult = node match{
     case r: BFSSyllableRoot => {
-    	lineResult.appendResult(r.value.value.first)
-    							lineResult}
+    	lineResult.prependResult(r.value.value.second)
+    	lineResult.prependResult(r.value.value.first)
+    	lineResult
+    	}
   	case s: BFSSyllableGraphNode => {
-  	  lineResult.appendResult(s.value.value.first)
+  	  lineResult.prependResult(s.value.value.second)
   	  buildLine(lineResult,s.backPointer)
-  								  }
-  	case _ =>{ lineResult }
+  	  }
   }
   
  protected def buildLineRev(lineResult:LineResult, node:BFSNode):LineResult = node match{
@@ -104,7 +112,7 @@ class SyllablePatternAlgorithm(val start:WordPairNode,
         }
   }
     
- override def getName:String = "BreadthFirstSearch"
+ override def getName:String = "SyllablePatternAlgorithm"
       
 }
 

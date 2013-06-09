@@ -5,7 +5,9 @@ object Dictionary {
   
 	 private var dictionary:HashMap[String,Word] = new HashMap[String,Word]
 	 
-	 def getWord(key:String):Option[Word]  = dictionary.get(key)
+	 def getWord(key:String):Option[Word]  =  dictionary.get(key.trim.toLowerCase())
+	 
+	 def getWord(indx:Int):Option[Word] = if(indx<dictionary.size) Some(dictionary.values.toList(indx)) else None
 	 
 	 def addWord(word:Word) = dictionary.put(word.value,word)
 	 
@@ -16,9 +18,31 @@ object Dictionary {
 	 def containsWord(key:String):Boolean = dictionary.contains(key)
 	 
 	 private var nonEndings:HashMap[String,Word] = new HashMap[String, Word]
-	 
+	 def isNonLineEnder(word:Word):Boolean = nonEndings.get(word.value) match{
+	   case Some(w) => true
+	   case None => false
+	 }
 	 def addNonLineEnder(word:Word) = nonEndings.put(word.value,word)
+	 def nonLineEndingsSize:Int = nonEndings.size
+	 def iterator:DictionaryIterator = new DictionaryIterator(dictionary.values.toList)
 	 
+}
+
+class DictionaryIterator(val list:List[Word]){
+   private var _current = 0
+   def current:Option[Word] = if(_current<list.size) Some(list(_current)) else None
+   def next:Option[Word] = {
+	   if(_current+1<list.size) {
+	     _current = _current + 1 
+	     Some(list(_current))
+	   }
+	   else{
+	     None
+	   }
+   }
+   def hasNext:Boolean = _current+1<list.size
+  
+  
 }
 
 object ImportNonLineEndingWords{
@@ -27,7 +51,7 @@ object ImportNonLineEndingWords{
 	  scala.io.Source.
 	  fromFile("/Users/michaeldorman/Desktop/poet_tree_project/conj_preps_puncs.txt").getLines().
 	  foreach {   line => parseLine(line)}
-	  println("dictionary initailized with: "  +Dictionary.size + " words")
+	  println("non line endings initailized with: "  + Dictionary.nonLineEndingsSize)
   }
   
   private def parseLine(line:String) = {
