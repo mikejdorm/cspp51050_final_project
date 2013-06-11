@@ -1,7 +1,6 @@
 package cspp51050
 
 class FreeVerseAlgorithm(val lines:Int, seed:WordPairNode) extends Algorithm[PoemResult[FreeVersePoem]] {
-  // println("Creating free verse poem with " + lines + " lines and a seed node of " + seed)
    val graph = WordGraph
    private var poem:FreeVersePoem = new FreeVersePoem(seed.value.first + " " + seed.value.second)
    private var result = new PoemResult[FreeVersePoem](poem)
@@ -44,9 +43,9 @@ class FreeVerseAlgorithm(val lines:Int, seed:WordPairNode) extends Algorithm[Poe
    }
 
    private def getNextSeed(node:WordPairNode):WordPairNode = {    
-        if(node.forwardPointers.size>=1){
-          val result = getRandomNode(node.forwardPointers.values.toList, node.value.second)
-          getRandomNode(result.forwardPointers.values.toList, result.value.second)
+        if(node.forwardCounter>=1){
+          val result = getRandomNode(node.forwardPointers, node.value.second)
+          getRandomNode(result.forwardPointers, result.value.second)
         }
         else if(node.backPointers.size>=1){
         	 getRandomSeed
@@ -55,25 +54,6 @@ class FreeVerseAlgorithm(val lines:Int, seed:WordPairNode) extends Algorithm[Poe
           getRandomSeed
         }
    }
-/*
-   private def getNextSeed(node:WordPairNode):WordPairNode ={
-       if(node.forwardPointers.size>=1){
-          graph.getNode(Some(node.value.second), 
-              Some(node.forwardPointers.values.toList(0).value)) match{
-            case Some(pair) => {
-               getPopularNode(node.forwardPointers.values.toList,pair, node.value.second)
-            }
-            case None =>{
-              getRandomSeed
-            }
-          }
-       }
-       else{
-    	   getRandomSeed
-       }
-   }
-   * 
-   */
    
    private def getPopularNode(words:List[WordNode], max:WordPairNode, word:Word):WordPairNode = words match{
      case x::xs =>   graph.getNode(Some(word), Some(words(0).value)) match{
@@ -87,6 +67,7 @@ class FreeVerseAlgorithm(val lines:Int, seed:WordPairNode) extends Algorithm[Poe
      				}
      case _ => max
    }
+   
    private def getRandomNode(words:List[WordNode], word:Word):WordPairNode ={
       if(words.size ==1){   
            graph.getNode(Some(word), Some(words(0).value)) match{

@@ -14,17 +14,12 @@ object Interpreter {
        case "new"::"haiku"::Nil => UserInterface.generateHaiku.printPoem
        case "new"::"freeverse"::Nil => UserInterface.generateFreeVersePoem.printPoem
        case "new"::"freeverse"::x::Nil => UserInterface.generateFreeVersePoem(x.toInt).printPoem
-       case "info"::xs::Nil => getNodeInfo(xs)
+       case "info"::x::y::Nil => UserInterface.getNodeInfo(x,y)
+       case "info"::x::Nil => UserInterface.getWordInfo(x)
        case "help"::Nil => printInstructions()
        case _ => println("invalid command")
      }
-     
-     private def getNodeInfo(commands:String) = commands.split(" ").toList match{
-       case x::y::Nil => UserInterface.getNodeInfo(x,y)
-       case x::Nil => UserInterface.getWordInfo(x)
-       case _ => println("invalid command")
-     }
-  
+
      private def printInstructions(){
        println("Supported Commands")
        println("new limerick - Generates a random limerick with ABABCCA rhyme pattern")

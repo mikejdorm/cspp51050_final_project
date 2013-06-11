@@ -41,19 +41,19 @@ object WordGraph extends Graph{
   
   def addForwardPointerToNode(key:String, word:Word) = {
     entries.get(key) match{
-      case Some(x) => x.addForwardPointer(new WordNode(word,x))
+      case Some(x) => x.addForwardPointer(new WordNode(word,x,false))
       case None => println("ok")
     }
   }
   
   def addBackPointerToNode(key:String, word:Word) ={
     entries.get(key) match{
-      case Some(x) => x.addBackPointer(new WordNode(word,x))
+      case Some(x) => x.addBackPointer(new WordNode(word,x,true))
       case None => println("")
     }
   }
   
-  def getNode(word1:Option[Word], word2:Option[Word]) = word1 match{
+  def getNode(word1:Option[Word], word2:Option[Word]):Option[WordPairNode] = word1 match{
     case Some(x) => word2 match{
       case Some(y) => entries.get(x.value + "#" + y.value)
       case None => None

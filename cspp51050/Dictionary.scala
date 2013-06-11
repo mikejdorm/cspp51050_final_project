@@ -66,7 +66,7 @@ object ImportNonLineEndingWords{
   
   def readFile() = {
 	  scala.io.Source.
-	  fromFile("../conj_preps_puncs.txt").getLines().
+	  fromFile("./conj_preps_puncs.txt").getLines().
 	  foreach {   line => parseLine(line)}
 	  println("non line endings initailized with: "  + Dictionary.nonLineEndingsSize)
   }
@@ -91,7 +91,7 @@ object ImportPhoneticDictionary {
   val dictionary =  Dictionary
   
   def readFile() = {
-  scala.io.Source.fromFile("../cmudict.0.7a").getLines().foreach {   line => parseLine(line)}
+  scala.io.Source.fromFile("./cmudict.0.7a").getLines().foreach {   line => parseLine(line)}
   println("dictionary initailized with: "  +dictionary.size + " words")
  }
   

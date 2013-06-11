@@ -28,6 +28,7 @@ case class LineResult(val lineNumber:Int) extends AlgorithmResult[Line,Word]{
        override var result = new Line(lineNumber)
        override def appendResult(word:Word) =  result.appendWord(word)
        override def prependResult(word:Word) = result.prependWord(word)
+       def addProbability(prob:Double) = result.addProbabilityValue(prob)
 }
 /*
 WordResult wraps a Word object

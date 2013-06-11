@@ -12,7 +12,7 @@ object ImportPoetryData {
   private var dict = Dictionary
   
  def execute()={
-	val elements = XML.loadFile("../poems.xml")
+	val elements = XML.loadFile("./poems.xml")
     (elements \ "ROW").foreach(row => parsePoem((row \ "poem_text").text.split("\\b").filter(_ != " ").toList))
     println("Graph contains " + graph.size + " nodes")
   }
@@ -37,7 +37,7 @@ object ImportPoetryData {
   private def organizeNodes(wordOne:Option[Word], wordTwo:Option[Word], wordThree:Option[Word]) = {
     	    graph.getNode(wordOne,wordTwo) match {
 	        case Some(n) => wordThree match{
-	          case Some(w) => n.addForwardPointer(new WordNode(w,n))
+	          case Some(w) => n.addForwardPointer(new WordNode(w,n,false))
 	          case None => None
 	        }
 	        case None => wordOne match{
@@ -48,7 +48,7 @@ object ImportPoetryData {
 	              case None => None
 	              case Some(word3) => {
 	                 val node = createNode(word, word2)
-	                 node.addForwardPointer(new WordNode(word3,node))
+	                 node.addForwardPointer(new WordNode(word3,node,false))
 	              }
 	            }
 	          }
@@ -56,7 +56,7 @@ object ImportPoetryData {
 	      }
     	 graph.getNode(wordTwo,wordThree) match{
     	    case Some(n) => wordOne match{
-	          case Some(w) => n.addBackPointer(new WordNode(w,n))
+	          case Some(w) => n.addBackPointer(new WordNode(w,n,true))
 	          case None => None
 	        }
 	        case None => wordTwo match{
@@ -67,7 +67,7 @@ object ImportPoetryData {
 	              case None => None
 	              case Some(word) => {
 	                 val node = createNode(word2, word3)
-	                 node.addBackPointer(new WordNode(word,node))
+	                 node.addBackPointer(new WordNode(word,node,true))
 	              }
 	            }
 	          }

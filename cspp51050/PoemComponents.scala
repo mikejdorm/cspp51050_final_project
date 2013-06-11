@@ -55,6 +55,7 @@ case class FreeVersePoem(val name:String) extends Poem
  line oomponent as a composite of word components.
 */
 class Line(val lineNumber:Int) extends Composite[Word]{
+ private var probability:Double = 1.0
  def wordCounter =components.size
  def getLastSyllables:String = components(components.size-1).lastSyllables
  def getLastWord:Word = components(components.size-1)
@@ -68,16 +69,17 @@ class Line(val lineNumber:Int) extends Composite[Word]{
    else
 	""
 }
+ def addProbabilityValue(value:Double) = probability = probability * value
  def getLineValues:List[Word] = components.toList
- def getLineProbability:Double = this.components.foldLeft(99.0)(_ * _.probability)
+ def getLineProbability:Double = this.probability
  def printLine = {
-  // print("score: " + getLineProbability)
-   //print(" syl: " + (for(i <- components) yield i.syllableCount))
-   print(" ")
    components.foreach(f => printToken(f.value))
+   print(" => probability: " + getLineProbability)
    println
  }
+ 
  override def toString():String =(for(i <- components) yield i.toString + " ").mkString
+ 
  private def printToken(text:String) = text match{
    case x => print (x + " ")
  }

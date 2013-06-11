@@ -114,7 +114,7 @@ protected def buildLine(seed:WordPairNode,lineSyllables:Int, lineNumber:Int):Opt
 		       result = check
 		    }
 		    else{
-		        word.forwardPointers.values.foreach(f => {
+		        word.forwardPointers.foreach(f => {
 		    	WordGraph.getNode(Some(word.value.second), Some(f.value)) match {
 		    	  case Some(w) => { 
 		    	    if(!markedNodes.contains(w.key)){
