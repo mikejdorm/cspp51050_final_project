@@ -21,19 +21,32 @@ abstract class GraphNode[X] {
       a back pointer to WordNode{"Charge"} and a forward pointer to WordNode{"Light"}. 
 
 */
+
+trait Counter{
+  var _count:Int = 0
+  def increment = {_count = _count  + 1}
+  def count:Int = _count
+}
+case class Counter extends Counter
+case class ForwardCounter extends Counter
+case class BackCounter extends Counter
+
 case class WordPairNode(val value:WordPair) extends GraphNode[WordPair]{
   /*
     counter to track the word transtions
   */
-  var counter:Int = 0
-  
+   private var counter:Counter = new Counter
+   private var forwardCounter:ForwardCounter = new ForwardCounter
+   private var backCounter:BackCounter = new BackCounter
+   
   //creates a key to reference the word pair node.
   override def key:String = value.first.value+"#"+value.second.value
  
-  var forwardPointers:HashMap[String,WordNode] = new HashMap[String,WordNode]
-  var backPointers:HashMap[String,WordNode] = new HashMap[String,WordNode]
-
-
+  
+  private var forwardPointers:HashMap[String,WordNode] = new HashMap[String,WordNode]
+  private var backPointers:HashMap[String,WordNode] = new HashMap[String,WordNode]
+  def backCounter:Int = this.backCounter.count
+  def forwardCounter:Int = this.forwardCounter.count
   def incrementMasterCounter() = {this.counter = this.counter + 1}
   
   /*
@@ -41,19 +54,26 @@ case class WordPairNode(val value:WordPair) extends GraphNode[WordPair]{
     map object. This is used by the addForwardPointer and addBackPointer
     functions. 
   */
-  private def addPointer(map:HashMap[String, WordNode], x:WordNode) = {
+  private def addPointer(map:HashMap[String, WordNode], x:WordNode, counter:Counter) = {
     if(map.contains(x.value.value)){
       map.get(x.value.value) match{
-        case Some(x) => {
-          this.incrementMasterCounter()
-          x.incrementCount()
+        case Some(x) => 
+        counter match {
+          case ForwardCounter => forwardCounter.increment
+          case BackCounter => backCounter.increment
+        }
+         x.incrementCount()
         }
         case None => None
       }
     }
     else{
-        this.incrementMasterCounter()
-          x.incrementCount()
+      counter match{
+        case ForwardCounter => forwardCounter.increment
+        case BackCounter => backCounter.increment
+      }
+      
+      x.incrementCount()
       map.put(x.key,x)
     }
   }
@@ -80,15 +100,20 @@ class WordPair(val first:Word, val second:Word)
 /*
   WordNode object to hold a word and also to bind to the parent object.
 */
-case class WordNode(val value:Word, val parent:WordPairNode) extends GraphNode[Word]{
+case class WordNode(val value:Word, val parent:WordPairNode,val backPointer:Boolean) extends GraphNode[Word]{
      var counter:Int = 0
      override def key:String = value.value
      def incrementCount() = {this.counter = this.counter +1 }
      def probability:Double = {
-       if(parent.counter != 0.0){
-         value.setProbability(this.counter/parent.counter)
+       if(backPointer && parent.backCounter!=0){
+         this.counter/parent.backCounter
        }
-        value.probability
+       else if(!backPointer && parent.forwardCounter!=0{
+         this.counter/parent.forwardCounter
+       }
+       else{
+         0.0
+       }
      } 
      
   }
