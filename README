@@ -1,0 +1,65 @@
+Author: Michael Dorman
+Final Project
+June 11, 2013
+
+Building and Running
+My lab 1 deliverable is programmed in Scala. The code can be compiled and run with the following 
+instructions using Scala version 2.9.x.
+
+cd to the cspp51050 directory with the source files and execute:
+	scalac *.scala
+
+After compilation in the same directory as the source files execute the following:
+	scala cspp51050.Main -classpath cspp51050
+
+You should see a prompt appear saying type "help" to see the supported commands. This will
+give you all the command line arguments for running the different functions of the program. 
+
+
+##Brief Overview
+The purpose of this project was to take a large list of existing poetry, track the word 
+transitions in the poetry and then have the program produce new original poetry. 
+
+The first step in organizing the project was gathering the necessary information. I pulled
+the poetry by running wget on www.poetryfoundation.org. I then used a few ruby scripts to 
+normalize the data by inserting it into a database. I eventually pulled it from the database
+and saved it in an XML file. The poem.xml file contains all this poetry data. I also needed
+to get a phonetic dictionary for the project. CMU has this covered with the CMU pronouncing 
+dictionary (http://www.speech.cs.cmu.edu/cgi-bin/cmudict). 
+
+The way the program works is that it first populates a dictionary hashmap using the CMU dictionary. 
+The saved words include the syllable count and the phonetic syllables associated with the word. 
+The next step is parses the poems. The program reads the poems and organizes them into nodes. 
+There are two main graph nodes used in the program. One is WordNodes that are just a component
+that wraps a single word object. The second node type is WordPairNode's. The way the program
+organizes these nodes is as follows. 
+
+The text "Charge of the Light Brigade" will yield the following
+
+1. WordPairNode("of","the")
+2. A WordNode("Charge") will be attached as a backpointer to WordPairNode("of","the"). 
+3. A WordNode("Light") will be attached as a forwardpointer to the WordPairNode("of","the")
+4. WordPairNode("the","light") will get a backpointer WordNode("of") and a forwardpointer WordNode("Brigade"). 
+
+This continues for every word in each poem. Word nodes are stored in a hash map with the key being
+the word text value for a WordNode and the pair of words for a WordPairNode (ex: key=> "of#the"). This
+way each node is only stored once but a counter is incremented whenever the same word transition occurs. 
+
+Algorithms --- 
+SyllablePatternAlgorithm - Creates a Line object given a seed word pair and a syllable count.
+
+RhymingSchemeAlgorithm - Creates a rhyming poem by first picking a rhyming word then passing the
+word as a seed to the Syllable algo for each line of the poem. 
+
+FreeVerseAlgorithm - Creates random length lines and random poem length using related yet random
+words. 
+
+##PATTERNS USED
+Singleton - WordGraph, Dictionary, UserInterface, Interpreter
+Template - Algorithm 
+Iterator - Dictionary Iterator
+Components - PoemComponents, GraphNode, BFSNode
+
+Facade - UserInterface to hide the algorithm implementations from the user. 
+
+
